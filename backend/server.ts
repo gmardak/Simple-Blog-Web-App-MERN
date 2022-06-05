@@ -1,8 +1,9 @@
 import express, {Application, Request, Response} from 'express';
 import {MongoClient, ObjectId} from 'mongodb';
-// import {validate, Length,} from 'class-validator';
+import {validate, Length,} from 'class-validator';
 import bodyParser from 'body-parser';
 import path from 'path';
+import {Post} from './post-validator';
 require('dotenv').config();
 
 // export class Post {
@@ -58,7 +59,19 @@ app.post('/create', (req:Request, res:Response)=>{
   // let post = new Post();
   // post.title = req.body.title;
   // post.body = req.body.body;
-  const post = req.body;
+  let post = new Post();
+  post.title = req.body.title;
+  post.body = req.body.body;
+  console.log(post);
+
+  validate(post).then(err=>{
+    if(err.length > 0){
+      console.log('validation failed. errors :', err);
+    }else{
+      console.log('validation successful');
+      create(post);
+    }
+  })
   const create = async function (post:{}){
     try{
 
@@ -71,7 +84,7 @@ app.post('/create', (req:Request, res:Response)=>{
     }
   }
 
-  create(post);
+
 
 });
 

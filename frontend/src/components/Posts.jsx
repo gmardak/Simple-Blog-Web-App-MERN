@@ -16,9 +16,14 @@ function CreatePost(){
   console.log('posts');
   console.log(posts);
   const savePost = (createdPost)=>{
-    setPosts((prevPosts)=>{
-      return [...prevPosts, createdPost]
-    });
+    fetch('/read')
+    .then(
+      results=>{
+        return results.json()})
+    .then(
+      data=>{
+        return setPosts(data)})
+    .catch(err=>console.log(err));
     setTitle('');
     setBody('');
   }
