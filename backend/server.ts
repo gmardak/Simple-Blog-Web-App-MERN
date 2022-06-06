@@ -22,35 +22,36 @@ const database = client.db('postDB');
 const postsCollection = database.collection('posts');
 
 const app: Application = express();
-app.use(express.static(path.join(__dirname, 'build')));
+app.use(express.static(path.join(__dirname, 'frontend')));
 // app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.json());
 
 app.get('/', (req:Request,res:Response)=>{
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
 app.get('/posts', (req:Request,res:Response)=>{
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
+
+const read = async function(){
+  try{
+
+    const cursor = await postsCollection.find({})
+    const allPosts = await cursor.toArray();
+    console.log(allPosts);
+
+    return (allPosts);
+
+  }catch(err){
+    console.log(err);
+  }
+}
 
 app.get('/read', (req:Request, res:Response)=>{
   console.log('READ GET');
 
-
-  const read = async function(){
-    try{
-
-      const cursor = await postsCollection.find({})
-      const allPosts = await cursor.toArray();
-      res.send(allPosts);
-
-    }catch(err){
-      console.log(err);
-    }
-  }
-
-  read();
+  read().then(results=>{res.send(results)})
 
 });
 
@@ -75,7 +76,8 @@ app.post('/create', (req:Request, res:Response)=>{
   const create = async function (post:{}){
     try{
 
-      const result = await postsCollection.insertOne(post);
+      const result = await postsCollection.insertOne(post).then(()=>{read().then((allResults)=>{res.send(allResults)})});
+      // result.then(()=>{read().then((allResulsts)=>{res.send(allResults)})})
 
 
     }catch(err){
@@ -83,8 +85,6 @@ app.post('/create', (req:Request, res:Response)=>{
 
     }
   }
-
-
 
 });
 
@@ -112,13 +112,30 @@ app.post('/delete', (req:Request, res:Response)=>{
 app.post('/edit', (req:Request, res:Response)=>{
   console.log('EDIT POST');
 
-  const postDetails = req.body;
-  console.log(postDetails);
+  let post = new Post();
 
-  const editPost = async function (postDetails:{postId:{id:string}, title:string, body:string}){
+  post.postId = req.body.postId;
+  post.title = req.body.title;
+  post.body = req.body.body;
+  console.log(post);
+
+  validate(post).then(err=>{
+    if(err.length > 0){
+      console.log('validation failed. errors :', err);
+    }else{
+      console.log('validation successful');
+      editPost(post);
+    }
+  })
+
+  // const postDetails = req.body;
+  // console.log(postDetails);
+
+  const editPost = async function (post:any){
     try{
 
-      const result = await postsCollection.findOneAndUpdate({'_id':new ObjectId(postDetails.postId.id)},{$set:{title:postDetails.title, body:postDetails.body}});
+      const result = await postsCollection.findOneAndUpdate({'_id':new ObjectId(post.postId.id)},{$set:{title:post.title, body:post.body}})
+      .then(()=>{read().then((allResults)=>{res.send(allResults)})});
 
 
     }catch(err){
@@ -126,7 +143,7 @@ app.post('/edit', (req:Request, res:Response)=>{
 
     }
   }
-  editPost(postDetails);
+  // editPost(postDetails);
 });
 
 

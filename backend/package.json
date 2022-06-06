@@ -4,11 +4,11 @@
   "description": "Backend for AGISO",
   "main": "server.js",
   "scripts": {
-    "start": "node server",
+    "start": "node server.js",
     "postinstall": "tsc",
     "test": "node server.js",
     "dev": "nodemon server.ts",
-    "build": "tsc -p ."
+    "build": "tsc"
   },
   "author": "Ardak Koishybayev",
   "license": "ISC",
